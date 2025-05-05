@@ -1,0 +1,95 @@
+import React, { useState } from "react";
+import { Input } from "../components/ui/input";
+import { Button } from "../components/ui/button";
+import { Card, CardContent } from "../components/ui/card";
+
+const steps = [
+  "Location & Climate",
+  "Home Details",
+  "Construction Details",
+  "Internal Gains",
+  "Results"
+];
+
+export default function ManualJCalculator() {
+  const [step, setStep] = useState(0);
+  const [form, setForm] = useState({
+    climateZone: "",
+    squareFootage: "",
+    stories: "",
+    orientation: "",
+    insulation: "",
+    windows: "",
+    walls: "",
+    occupancy: "",
+    appliances: "",
+    lighting: ""
+  });
+
+  const handleChange = (field, value) => {
+    setForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const calculateLoads = () => {
+    const sqft = parseFloat(form.squareFootage);
+    const occupants = parseInt(form.occupancy);
+    const gain = sqft * 20 + occupants * 600 + 1000;
+    return {
+      heatingLoad: Math.round(gain * 0.6),
+      coolingLoad: Math.round(gain * 0.4)
+    };
+  };
+
+  const renderStep = () => {
+    switch (step) {
+      case 0:
+        return <Input placeholder="Climate Zone (e.g. 5A)" value={form.climateZone} onChange={e => handleChange("climateZone", e.target.value)} />;
+      case 1:
+        return <>
+          <Input placeholder="Square Footage" value={form.squareFootage} onChange={e => handleChange("squareFootage", e.target.value)} />
+          <Input placeholder="Stories" value={form.stories} onChange={e => handleChange("stories", e.target.value)} />
+          <Input placeholder="Orientation (N, S, E, W)" value={form.orientation} onChange={e => handleChange("orientation", e.target.value)} />
+        </>;
+      case 2:
+        return <>
+          <Input placeholder="Insulation R-value" value={form.insulation} onChange={e => handleChange("insulation", e.target.value)} />
+          <Input placeholder="Window Type (double, single)" value={form.windows} onChange={e => handleChange("windows", e.target.value)} />
+          <Input placeholder="Wall Construction Type" value={form.walls} onChange={e => handleChange("walls", e.target.value)} />
+        </>;
+      case 3:
+        return <>
+          <Input placeholder="Occupants" value={form.occupancy} onChange={e => handleChange("occupancy", e.target.value)} />
+          <Input placeholder="Appliance Heat Gain (BTU/hr)" value={form.appliances} onChange={e => handleChange("appliances", e.target.value)} />
+          <Input placeholder="Lighting Heat Gain (BTU/hr)" value={form.lighting} onChange={e => handleChange("lighting", e.target.value)} />
+        </>;
+      case 4:
+        const { heatingLoad, coolingLoad } = calculateLoads();
+        return <>
+          <p>Estimated Heating Load: {heatingLoad} BTU/hr</p>
+          <p>Estimated Cooling Load: {coolingLoad} BTU/hr</p>
+        </>;
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="max-w-xl mx-auto p-4">
+      <Card className="p-4 shadow-xl">
+        <CardContent>
+          <h1 className="text-xl font-bold mb-4">Manual J Load Calculator</h1>
+          <p className="mb-2 font-semibold">Step {step + 1}: {steps[step]}</p>
+          <div className="space-y-3 mb-4">{renderStep()}</div>
+          <div className="flex justify-between">
+            {step > 0 && <Button onClick={() => setStep(step - 1)}>Back</Button>}
+            {step < steps.length - 1 ? (
+              <Button onClick={() => setStep(step + 1)}>Next</Button>
+            ) : (
+              <Button onClick={() => alert("Calculation complete!")}>Finish</Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
